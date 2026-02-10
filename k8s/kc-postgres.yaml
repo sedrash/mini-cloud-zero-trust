@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kc-postgres-secret
+  namespace: zerotrust
+type: Opaque
+stringData:
+  POSTGRES_DB: keycloak
+  POSTGRES_USER: keycloak
+  POSTGRES_PASSWORD: keycloakpassword
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kc-postgres-pvc
+  namespace: zerotrust
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kc-postgres
+  namespace: zerotrust
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kc-postgres
+  template:
+    metadata:
+      labels:
+        app: kc-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: kc-postgres-secret
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: kc-postgres-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kc-postgres
+  namespace: zerotrust
+spec:
+  selector:
+    app: kc-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432

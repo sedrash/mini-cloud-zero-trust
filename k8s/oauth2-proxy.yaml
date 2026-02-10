@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy
+  namespace: zerotrust
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy
+    spec:
+      containers:
+      - name: oauth2-proxy
+        image: quay.io/oauth2-proxy/oauth2-proxy:v7.5.1
+        ports:
+          - containerPort: 4180
+        args:
+          - --provider=oidc
+          - --oidc-issuer-url=http://keycloak.zerotrust.svc.cluster.local/realms/zerotrust
+          - --client-id=frontend-client
+          - --client-secret=$(CLIENT_SECRET)
+          - --cookie-secret=$(COOKIE_SECRET)
+
+          # OIDC / sécurité
+          - --email-domain=*
+          - --code-challenge-method=S256
+
+          # Mode reverse proxy (Traefik)
+          - --reverse-proxy=true
+          - --force-https=false
+
+          # Cookies (TP en HTTP)
+          - --cookie-secure=false
+          - --cookie-httponly=true
+          - --cookie-samesite=lax
+          - --cookie-domain=frontend.local
+          - --whitelist-domain=frontend.local
+
+          # URLs publiques
+          - --redirect-url=http://frontend.local/oauth2/callback
+          - --proxy-prefix=/oauth2
+
+          # Backend protégé
+          - --upstream=http://frontend.zerotrust.svc.cluster.local:80
+          - --set-authorization-header=true
+          - --pass-authorization-header=true
+
+        env:
+          - name: CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: oauth2-proxy-secret
+                key: client-secret
+          - name: COOKIE_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: oauth2-proxy-secret
+                key: cookie-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy
+  namespace: zerotrust
+spec:
+  selector:
+    app: oauth2-proxy
+  ports:
+    - port: 80
+      targetPort: 4180
