@@ -1,0 +1,6 @@
+# Exemple config Suricata IDS/IPS
+%YAML 1.1
+%TAG !yaml! tag:yaml.org,2002:
+---
+af-packet:
+  - interface: eth0

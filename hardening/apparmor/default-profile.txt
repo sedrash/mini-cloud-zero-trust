@@ -1,0 +1,4 @@
+# Exemple de profil AppArmor
+profile my-container /usr/bin/mycontainer {
+    # règles AppArmor
+}
