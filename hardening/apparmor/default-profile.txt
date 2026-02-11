@@ -1,4 +1,4 @@
-# Exemple de profil AppArmor
+# Exemple de profil AppArmor pour un conteneur
 profile my-container /usr/bin/mycontainer {
-    # règles AppArmor
+    # Limitation des droits sur fichiers et processus
 }
