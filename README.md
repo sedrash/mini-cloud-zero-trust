@@ -16,10 +16,15 @@ Il inclut :
 ## Structure du projet
 
 mini-cloud-zero-trust/
+
 ├─ manifests/ # Tous les YAML Kubernetes
+
 ├─ scripts/ # Scripts d'installation et de configuration
+
 ├─ hardening/ # Configs sysctl, SSH, rsyslog, AppArmor, Suricata
+
 ├─ report/ # Documentation et rapports
+
 └─ README.md
 
 ## Installation rapide
